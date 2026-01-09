@@ -29,9 +29,39 @@
             background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.3)), 
                         url('https://lawncom93.github.io/SlickX/users/202601/img/20260109.jpg');
             background-size: cover;
-            background-position: center;
+            background-position: center center;
+            background-repeat: no-repeat;
             min-height: 100vh;
             min-height: 100dvh;
+        }
+        
+        /* 모바일 최적화 */
+        @media (max-width: 768px) {
+            .hero-bg {
+                background-attachment: scroll;
+                background-position: center center;
+                background-size: cover;
+                /* 모바일에서 이미지가 잘리지 않도록 */
+                min-height: 100vh;
+                min-height: 100dvh;
+            }
+        }
+        
+        /* 작은 스마트폰 (아이폰 SE 등) */
+        @media (max-width: 480px) {
+            .hero-bg {
+                background-size: auto 100%;
+                background-position: center top;
+            }
+        }
+        
+        /* 가로 모드 스마트폰 */
+        @media (max-width: 896px) and (orientation: landscape) {
+            .hero-bg {
+                background-size: 100% auto;
+                background-position: center center;
+                min-height: 100vh;
+            }
         }
         @media (max-width: 768px) {
             .hero-bg {
@@ -473,5 +503,6 @@
     </script>
 </body>
 </html>
+
 
 
