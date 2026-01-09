@@ -24,7 +24,7 @@
         }
         .serif {
             font-family: 'Playfair Display', serif;
-        }
+                }
         .hero-bg {
             background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.3)), 
                         url('https://lawncom93.github.io/SlickX/users/202601/img/20260109.jpg');
@@ -35,29 +35,40 @@
             min-height: 100dvh;
         }
         
-        /* 모바일 최적화 */
+        /* 태블릿 최적화 */
+        @media (max-width: 1024px) {
+            .hero-bg {
+                background-size: contain;
+                background-position: top center;
+                background-color: #1a1a2e;
+            }
+        }
+        
+        /* 모바일 최적화 - 이미지가 잘리지 않도록 */
         @media (max-width: 768px) {
             .hero-bg {
                 background-attachment: scroll;
-                background-position: center center;
-                background-size: cover;
+                background-size: contain;
+                background-position: top center;
+                background-color: #1a1a2e;
                 min-height: 100vh;
                 min-height: 100dvh;
             }
         }
         
-        /* 작은 스마트폰 (아이폰 SE 등) */
+        /* 작은 스마트폰 */
         @media (max-width: 480px) {
             .hero-bg {
-                background-size: auto 100%;
-                background-position: center top;
+                background-size: 100% auto;
+                background-position: top center;
+                background-color: #1a1a2e;
             }
         }
         
-        /* 가로 모드 스마트폰 */
+        /* 가로 모드 */
         @media (max-width: 896px) and (orientation: landscape) {
             .hero-bg {
-                background-size: 100% auto;
+                background-size: cover;
                 background-position: center center;
                 min-height: 100vh;
             }
@@ -498,3 +509,4 @@
     </script>
 </body>
 </html>
+
