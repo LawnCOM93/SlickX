@@ -155,6 +155,21 @@
             color: #856404;
         }
 
+        .error {
+            background: #f8d7da;
+            border-left: 4px solid #dc3545;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            color: #721c24;
+        }
+
+        .info-text {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+
         @media (max-width: 968px) {
             .content {
                 grid-template-columns: 1fr;
@@ -173,21 +188,19 @@
                 <div class="input-group">
                     <label for="height">층고 (수직 높이, mm)</label>
                     <input type="number" id="height" value="2400" min="1000" step="10">
+                    <div class="info-text">전체 수직 높이</div>
                 </div>
 
                 <div class="input-group">
-                    <label for="width">가로 길이 (수평 거리, mm)</label>
-                    <input type="number" id="width" value="4000" min="1000" step="10">
-                </div>
-
-                <div class="input-group">
-                    <label for="steps">계단 개수</label>
-                    <input type="number" id="steps" value="13" min="5" step="1">
+                    <label for="riserHeight">챌판 높이 (mm)</label>
+                    <input type="number" id="riserHeight" value="185" min="100" step="5">
+                    <div class="info-text">각 계단의 높이 (권장: 150-200mm)</div>
                 </div>
 
                 <div class="input-group">
                     <label for="treadDepth">디딤판 깊이 (mm)</label>
                     <input type="number" id="treadDepth" value="300" min="200" step="10">
+                    <div class="info-text">발을 딛는 면의 깊이 (권장: 250-350mm)</div>
                 </div>
 
                 <button class="calculate-btn" onclick="calculate()">계산하기</button>
@@ -205,12 +218,16 @@
                         <span class="result-value" id="resultSteps">-</span>
                     </div>
                     <div class="result-item">
+                        <span class="result-label">챌판 높이:</span>
+                        <span class="result-value" id="resultRiser">-</span>
+                    </div>
+                    <div class="result-item">
                         <span class="result-label">디딤판 깊이:</span>
                         <span class="result-value" id="resultTread">-</span>
                     </div>
                     <div class="result-item">
-                        <span class="result-label">챌판 높이:</span>
-                        <span class="result-value" id="resultRiser">-</span>
+                        <span class="result-label">전체 가로 길이:</span>
+                        <span class="result-value" id="resultWidth">-</span>
                     </div>
                     <div class="result-item">
                         <span class="result-label">경사 길이:</span>
@@ -230,44 +247,79 @@
         function calculate() {
             // 입력 값 가져오기 (mm 단위)
             const height = parseFloat(document.getElementById('height').value);
-            const width = parseFloat(document.getElementById('width').value);
-            const steps = parseInt(document.getElementById('steps').value);
+            const riserHeight = parseFloat(document.getElementById('riserHeight').value);
             const treadDepth = parseFloat(document.getElementById('treadDepth').value);
 
-            // 계산 (모두 mm 단위)
-            const riserHeight = height / steps;
-            const actualWidth = treadDepth * (steps - 1);
-            const slopeLength = Math.sqrt(height * height + actualWidth * actualWidth);
-            const angle = Math.atan(height / actualWidth) * (180 / Math.PI);
+            // 계단 개수 계산
+            const steps = Math.ceil(height / riserHeight);
+            
+            // 실제 챌판 높이 재계산 (층고를 정확히 나누기 위해)
+            const actualRiserHeight = height / steps;
+            
+            // 전체 가로 길이 계산
+            const totalWidth = treadDepth * (steps - 1);
+            
+            // 경사 길이 계산
+            const slopeLength = Math.sqrt(height * height + totalWidth * totalWidth);
+            
+            // 경사각도 계산
+            const angle = Math.atan(height / totalWidth) * (180 / Math.PI);
 
             // 결과 표시 (mm 단위)
             document.getElementById('resultSteps').textContent = `${steps}개`;
+            document.getElementById('resultRiser').textContent = `${actualRiserHeight.toFixed(1)}mm`;
             document.getElementById('resultTread').textContent = `${treadDepth.toFixed(0)}mm`;
-            document.getElementById('resultRiser').textContent = `${riserHeight.toFixed(1)}mm`;
+            document.getElementById('resultWidth').textContent = `${totalWidth.toFixed(0)}mm`;
             document.getElementById('resultSlope').textContent = `${slopeLength.toFixed(0)}mm`;
             document.getElementById('resultAngle').textContent = `${angle.toFixed(1)}°`;
 
-            // 권장 기준 체크 (mm 단위)
+            // 권장 기준 체크 및 경고 메시지
             let warnings = [];
-            if (riserHeight < 150 || riserHeight > 200) {
-                warnings.push(`⚠️ 챌판 높이(${riserHeight.toFixed(1)}mm)가 권장 범위(150-200mm)를 벗어났습니다.`);
-            }
-            if (treadDepth < 250 || treadDepth > 350) {
-                warnings.push(`⚠️ 디딤판 깊이(${treadDepth}mm)가 권장 범위(250-350mm)를 벗어났습니다.`);
-            }
-            if (angle < 30 || angle > 40) {
-                warnings.push(`⚠️ 경사각도(${angle.toFixed(1)}°)가 권장 범위(30-40°)를 벗어났습니다.`);
+            let errors = [];
+
+            // 챌판 높이 체크
+            if (actualRiserHeight < 150) {
+                warnings.push(`⚠️ 챌판 높이(${actualRiserHeight.toFixed(1)}mm)가 권장 최소값(150mm)보다 낮습니다. 계단이 너무 낮을 수 있습니다.`);
+            } else if (actualRiserHeight > 200) {
+                warnings.push(`⚠️ 챌판 높이(${actualRiserHeight.toFixed(1)}mm)가 권장 최대값(200mm)보다 높습니다. 계단이 너무 가파를 수 있습니다.`);
             }
 
-            const warningBox = document.getElementById('warningBox');
-            if (warnings.length > 0) {
-                warningBox.innerHTML = `<div class="warning">${warnings.join('<br>')}</div>`;
-            } else {
-                warningBox.innerHTML = '';
+            // 디딤판 깊이 체크
+            if (treadDepth < 250) {
+                warnings.push(`⚠️ 디딤판 깊이(${treadDepth}mm)가 권장 최소값(250mm)보다 짧습니다. 발을 딛기 불편할 수 있습니다.`);
+            } else if (treadDepth > 350) {
+                warnings.push(`⚠️ 디딤판 깊이(${treadDepth}mm)가 권장 최대값(350mm)보다 깊습니다.`);
             }
+
+            // 경사각도 체크
+            if (angle < 30) {
+                warnings.push(`⚠️ 경사각도(${angle.toFixed(1)}°)가 권장 최소값(30°)보다 낮습니다. 계단이 너무 완만합니다.`);
+            } else if (angle > 40) {
+                warnings.push(`⚠️ 경사각도(${angle.toFixed(1)}°)가 권장 최대값(40°)보다 높습니다. 계단이 너무 가파릅니다.`);
+            }
+
+            // 입력 챌판 높이와 실제 계산된 챌판 높이의 차이가 큰 경우
+            const heightDiff = Math.abs(riserHeight - actualRiserHeight);
+            if (heightDiff > 5) {
+                warnings.push(`ℹ️ 입력한 챌판 높이(${riserHeight}mm)가 실제 계산값(${actualRiserHeight.toFixed(1)}mm)과 ${heightDiff.toFixed(1)}mm 차이가 납니다. 층고를 정확히 나누기 위해 조정되었습니다.`);
+            }
+
+            // 경고 메시지 표시
+            const warningBox = document.getElementById('warningBox');
+            let messageHtml = '';
+            
+            if (errors.length > 0) {
+                messageHtml += `<div class="error">${errors.join('<br>')}</div>`;
+            }
+            
+            if (warnings.length > 0) {
+                messageHtml += `<div class="warning">${warnings.join('<br>')}</div>`;
+            }
+
+            warningBox.innerHTML = messageHtml;
 
             // 다이어그램 그리기
-            drawDiagram(height, actualWidth, steps, treadDepth, riserHeight, slopeLength);
+            drawDiagram(height, totalWidth, steps, treadDepth, actualRiserHeight, slopeLength);
         }
 
         function drawDiagram(height, width, steps, treadDepth, riserHeight, slopeLength) {
@@ -310,37 +362,63 @@
             ctx.lineTo(offsetX, offsetY);
             ctx.stroke();
 
+            // 화살표 그리기 함수
+            function drawArrow(fromX, fromY, toX, toY) {
+                const headLength = 8;
+                const angle = Math.atan2(toY - fromY, toX - fromX);
+                
+                ctx.beginPath();
+                ctx.moveTo(fromX, fromY);
+                ctx.lineTo(toX, toY);
+                ctx.lineTo(toX - headLength * Math.cos(angle - Math.PI / 6), 
+                          toY - headLength * Math.sin(angle - Math.PI / 6));
+                ctx.moveTo(toX, toY);
+                ctx.lineTo(toX - headLength * Math.cos(angle + Math.PI / 6), 
+                          toY - headLength * Math.sin(angle + Math.PI / 6));
+                ctx.stroke();
+            }
+
             // 치수 표기 (mm 단위)
             ctx.fillStyle = '#dc3545';
+            ctx.strokeStyle = '#dc3545';
             ctx.font = 'bold 14px Arial';
+            ctx.lineWidth = 2;
             
-            // 가로 치수
+            // 가로 치수 (하단)
+            const bottomY = offsetY + 25;
+            drawArrow(offsetX, bottomY, offsetX + (width * scale), bottomY);
             ctx.fillText(`${width.toFixed(0)}mm`, 
                 offsetX + (width * scale) / 2 - 30, 
-                offsetY + 25);
+                bottomY - 8);
             
-            // 세로 치수
+            // 세로 치수 (우측)
+            const rightX = offsetX + (width * scale) + 15;
+            drawArrow(rightX, offsetY, rightX, offsetY - (height * scale));
             ctx.fillText(`${height.toFixed(0)}mm`, 
-                offsetX + (width * scale) + 15, 
+                rightX + 5, 
                 offsetY - (height * scale) / 2);
             
-            // 경사 치수
+            // 경사 치수 (중앙)
             const midX = offsetX + (width * scale) / 2;
             const midY = offsetY - (height * scale) / 2;
             ctx.fillText(`${slopeLength.toFixed(0)}mm`, midX - 40, midY - 10);
 
-            // 디딤판 치수
+            // 디딤판 치수 (첫 번째 계단)
             if (steps > 0) {
+                const treadY = offsetY - 10;
+                drawArrow(offsetX, treadY, offsetX + (treadDepth * scale), treadY);
                 ctx.fillText(`${treadDepth.toFixed(0)}mm`, 
-                    offsetX + (treadDepth * scale) / 2 - 20, 
-                    offsetY - 10);
+                    offsetX + (treadDepth * scale) / 2 - 25, 
+                    treadY - 8);
             }
 
-            // 챌판 치수
+            // 챌판 치수 (첫 번째 계단)
             if (steps > 0) {
+                const riserX = offsetX - 25;
+                drawArrow(riserX, offsetY, riserX, offsetY - (riserHeight * scale));
                 ctx.fillText(`${riserHeight.toFixed(0)}mm`, 
-                    offsetX - 35, 
-                    offsetY - (riserHeight * scale) / 2);
+                    offsetX - 60, 
+                    offsetY - (riserHeight * scale) / 2 + 5);
             }
         }
 
