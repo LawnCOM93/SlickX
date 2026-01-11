@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>계단 치수 자동 계산기</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 1200px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2em;
+        }
+
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+        }
+
+        .input-section {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 15px;
+        }
+
+        .input-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .calculate-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .calculate-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .calculate-btn:active {
+            transform: translateY(0);
+        }
+
+        .result-section {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .diagram {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            position: relative;
+            min-height: 400px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        canvas {
+            max-width: 100%;
+            border-radius: 10px;
+        }
+
+        .results {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 15px;
+        }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .result-item:last-child {
+            border-bottom: none;
+        }
+
+        .result-label {
+            color: #555;
+            font-weight: 600;
+        }
+
+        .result-value {
+            color: #667eea;
+            font-weight: 700;
+            font-size: 18px;
+        }
+
+        .warning {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            color: #856404;
+        }
+
+        @media (max-width: 968px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏗️ 계단 치수 자동 계산기</h1>
+        
+        <div class="content">
+            <div class="input-section">
+                <h2 style="margin-bottom: 20px; color: #333;">입력 값</h2>
+                
+                <div class="input-group">
+                    <label for="height">층고 (수직 높이, cm)</label>
+                    <input type="number" id="height" value="240" min="100" step="10">
+                </div>
+
+                <div class="input-group">
+                    <label for="width">가로 길이 (수평 거리, cm)</label>
+                    <input type="number" id="width" value="400" min="100" step="10">
+                </div>
+
+                <div class="input-group">
+                    <label for="steps">계단 개수</label>
+                    <input type="number" id="steps" value="13" min="5" step="1">
+                </div>
+
+                <div class="input-group">
+                    <label for="treadDepth">디딤판 깊이 (cm)</label>
+                    <input type="number" id="treadDepth" value="30" min="20" step="1">
+                </div>
+
+                <button class="calculate-btn" onclick="calculate()">계산하기</button>
+            </div>
+
+            <div class="result-section">
+                <div class="diagram">
+                    <canvas id="stairCanvas" width="500" height="400"></canvas>
+                </div>
+
+                <div class="results" id="results">
+                    <h2 style="margin-bottom: 15px; color: #333;">계산 결과</h2>
+                    <div class="result-item">
+                        <span class="result-label">계단 개수:</span>
+                        <span class="result-value" id="resultSteps">-</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">디딤판 깊이:</span>
+                        <span class="result-value" id="resultTread">-</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">챌판 높이:</span>
+                        <span class="result-value" id="resultRiser">-</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">경사 길이:</span>
+                        <span class="result-value" id="resultSlope">-</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">경사각도:</span>
+                        <span class="result-value" id="resultAngle">-</span>
+                    </div>
+                    <div id="warningBox"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function calculate() {
+            // 입력 값 가져오기
+            const height = parseFloat(document.getElementById('height').value);
+            const width = parseFloat(document.getElementById('width').value);
+            const steps = parseInt(document.getElementById('steps').value);
+            const treadDepth = parseFloat(document.getElementById('treadDepth').value);
+
+            // 계산
+            const riserHeight = height / steps;
+            const actualWidth = treadDepth * (steps - 1);
+            const slopeLength = Math.sqrt(height * height + actualWidth * actualWidth);
+            const angle = Math.atan(height / actualWidth) * (180 / Math.PI);
+
+            // 결과 표시
+            document.getElementById('resultSteps').textContent = `${steps}개`;
+            document.getElementById('resultTread').textContent = `${treadDepth.toFixed(1)}cm`;
+            document.getElementById('resultRiser').textContent = `${riserHeight.toFixed(1)}cm`;
+            document.getElementById('resultSlope').textContent = `${(slopeLength / 100).toFixed(2)}m`;
+            document.getElementById('resultAngle').textContent = `${angle.toFixed(1)}°`;
+
+            // 권장 기준 체크
+            let warnings = [];
+            if (riserHeight < 15 || riserHeight > 20) {
+                warnings.push(`⚠️ 챌판 높이(${riserHeight.toFixed(1)}cm)가 권장 범위(15-20cm)를 벗어났습니다.`);
+            }
+            if (treadDepth < 25 || treadDepth > 35) {
+                warnings.push(`⚠️ 디딤판 깊이(${treadDepth}cm)가 권장 범위(25-35cm)를 벗어났습니다.`);
+            }
+            if (angle < 30 || angle > 40) {
+                warnings.push(`⚠️ 경사각도(${angle.toFixed(1)}°)가 권장 범위(30-40°)를 벗어났습니다.`);
+            }
+
+            const warningBox = document.getElementById('warningBox');
+            if (warnings.length > 0) {
+                warningBox.innerHTML = `<div class="warning">${warnings.join('<br>')}</div>`;
+            } else {
+                warningBox.innerHTML = '';
+            }
+
+            // 다이어그램 그리기
+            drawDiagram(height, actualWidth, steps, treadDepth, riserHeight, slopeLength);
+        }
+
+        function drawDiagram(height, width, steps, treadDepth, riserHeight, slopeLength) {
+            const canvas = document.getElementById('stairCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            // 캔버스 초기화
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 스케일 조정
+            const scale = Math.min(
+                (canvas.width - 80) / width,
+                (canvas.height - 80) / height
+            );
+            
+            const offsetX = 40;
+            const offsetY = canvas.height - 40;
+
+            // 계단 그리기
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 2;
+            
+            for (let i = 0; i < steps; i++) {
+                const x = offsetX + (i * treadDepth * scale);
+                const y = offsetY - (i * riserHeight * scale);
+                
+                // 디딤판
+                ctx.strokeRect(x, y - (riserHeight * scale), treadDepth * scale, riserHeight * scale);
+                ctx.fillStyle = '#e9ecef';
+                ctx.fillRect(x, y - (riserHeight * scale), treadDepth * scale, riserHeight * scale);
+            }
+
+            // 빨간색 삼각형 외곽선
+            ctx.strokeStyle = '#dc3545';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(offsetX, offsetY);
+            ctx.lineTo(offsetX + (width * scale), offsetY);
+            ctx.lineTo(offsetX + (width * scale), offsetY - (height * scale));
+            ctx.lineTo(offsetX, offsetY);
+            ctx.stroke();
+
+            // 치수 표기
+            ctx.fillStyle = '#dc3545';
+            ctx.font = 'bold 14px Arial';
+            
+            // 가로 치수
+            ctx.fillText(`${(width / 100).toFixed(1)}m`, 
+                offsetX + (width * scale) / 2 - 20, 
+                offsetY + 25);
+            
+            // 세로 치수
+            ctx.fillText(`${(height / 100).toFixed(1)}m`, 
+                offsetX + (width * scale) + 15, 
+                offsetY - (height * scale) / 2);
+            
+            // 경사 치수
+            const midX = offsetX + (width * scale) / 2;
+            const midY = offsetY - (height * scale) / 2;
+            ctx.fillText(`${(slopeLength / 100).toFixed(2)}m`, midX - 40, midY - 10);
+
+            // 디딤판 치수
+            if (steps > 0) {
+                ctx.fillText(`${treadDepth}cm`, 
+                    offsetX + (treadDepth * scale) / 2 - 15, 
+                    offsetY - 10);
+            }
+
+            // 챌판 치수
+            if (steps > 0) {
+                ctx.fillText(`${riserHeight.toFixed(0)}cm`, 
+                    offsetX - 35, 
+                    offsetY - (riserHeight * scale) / 2);
+            }
+        }
+
+        // 페이지 로드 시 초기 계산
+        window.onload = function() {
+            calculate();
+        };
+
+        // 입력 값 변경 시 자동 계산
+        document.querySelectorAll('input').forEach(input => {
+            input.addEventListener('input', calculate);
+        });
+    </script>
+</body>
+</html>
