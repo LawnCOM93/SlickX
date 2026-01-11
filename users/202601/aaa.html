@@ -171,13 +171,13 @@
                 <h2 style="margin-bottom: 20px; color: #333;">입력 값</h2>
                 
                 <div class="input-group">
-                    <label for="height">층고 (수직 높이, cm)</label>
-                    <input type="number" id="height" value="240" min="100" step="10">
+                    <label for="height">층고 (수직 높이, mm)</label>
+                    <input type="number" id="height" value="2400" min="1000" step="10">
                 </div>
 
                 <div class="input-group">
-                    <label for="width">가로 길이 (수평 거리, cm)</label>
-                    <input type="number" id="width" value="400" min="100" step="10">
+                    <label for="width">가로 길이 (수평 거리, mm)</label>
+                    <input type="number" id="width" value="4000" min="1000" step="10">
                 </div>
 
                 <div class="input-group">
@@ -186,8 +186,8 @@
                 </div>
 
                 <div class="input-group">
-                    <label for="treadDepth">디딤판 깊이 (cm)</label>
-                    <input type="number" id="treadDepth" value="30" min="20" step="1">
+                    <label for="treadDepth">디딤판 깊이 (mm)</label>
+                    <input type="number" id="treadDepth" value="300" min="200" step="10">
                 </div>
 
                 <button class="calculate-btn" onclick="calculate()">계산하기</button>
@@ -228,32 +228,32 @@
 
     <script>
         function calculate() {
-            // 입력 값 가져오기
+            // 입력 값 가져오기 (mm 단위)
             const height = parseFloat(document.getElementById('height').value);
             const width = parseFloat(document.getElementById('width').value);
             const steps = parseInt(document.getElementById('steps').value);
             const treadDepth = parseFloat(document.getElementById('treadDepth').value);
 
-            // 계산
+            // 계산 (모두 mm 단위)
             const riserHeight = height / steps;
             const actualWidth = treadDepth * (steps - 1);
             const slopeLength = Math.sqrt(height * height + actualWidth * actualWidth);
             const angle = Math.atan(height / actualWidth) * (180 / Math.PI);
 
-            // 결과 표시
+            // 결과 표시 (mm 단위)
             document.getElementById('resultSteps').textContent = `${steps}개`;
-            document.getElementById('resultTread').textContent = `${treadDepth.toFixed(1)}cm`;
-            document.getElementById('resultRiser').textContent = `${riserHeight.toFixed(1)}cm`;
-            document.getElementById('resultSlope').textContent = `${(slopeLength / 100).toFixed(2)}m`;
+            document.getElementById('resultTread').textContent = `${treadDepth.toFixed(0)}mm`;
+            document.getElementById('resultRiser').textContent = `${riserHeight.toFixed(1)}mm`;
+            document.getElementById('resultSlope').textContent = `${slopeLength.toFixed(0)}mm`;
             document.getElementById('resultAngle').textContent = `${angle.toFixed(1)}°`;
 
-            // 권장 기준 체크
+            // 권장 기준 체크 (mm 단위)
             let warnings = [];
-            if (riserHeight < 15 || riserHeight > 20) {
-                warnings.push(`⚠️ 챌판 높이(${riserHeight.toFixed(1)}cm)가 권장 범위(15-20cm)를 벗어났습니다.`);
+            if (riserHeight < 150 || riserHeight > 200) {
+                warnings.push(`⚠️ 챌판 높이(${riserHeight.toFixed(1)}mm)가 권장 범위(150-200mm)를 벗어났습니다.`);
             }
-            if (treadDepth < 25 || treadDepth > 35) {
-                warnings.push(`⚠️ 디딤판 깊이(${treadDepth}cm)가 권장 범위(25-35cm)를 벗어났습니다.`);
+            if (treadDepth < 250 || treadDepth > 350) {
+                warnings.push(`⚠️ 디딤판 깊이(${treadDepth}mm)가 권장 범위(250-350mm)를 벗어났습니다.`);
             }
             if (angle < 30 || angle > 40) {
                 warnings.push(`⚠️ 경사각도(${angle.toFixed(1)}°)가 권장 범위(30-40°)를 벗어났습니다.`);
@@ -277,7 +277,7 @@
             // 캔버스 초기화
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
-            // 스케일 조정
+            // 스케일 조정 (mm를 픽셀로 변환)
             const scale = Math.min(
                 (canvas.width - 80) / width,
                 (canvas.height - 80) / height
@@ -310,35 +310,35 @@
             ctx.lineTo(offsetX, offsetY);
             ctx.stroke();
 
-            // 치수 표기
+            // 치수 표기 (mm 단위)
             ctx.fillStyle = '#dc3545';
             ctx.font = 'bold 14px Arial';
             
             // 가로 치수
-            ctx.fillText(`${(width / 100).toFixed(1)}m`, 
-                offsetX + (width * scale) / 2 - 20, 
+            ctx.fillText(`${width.toFixed(0)}mm`, 
+                offsetX + (width * scale) / 2 - 30, 
                 offsetY + 25);
             
             // 세로 치수
-            ctx.fillText(`${(height / 100).toFixed(1)}m`, 
+            ctx.fillText(`${height.toFixed(0)}mm`, 
                 offsetX + (width * scale) + 15, 
                 offsetY - (height * scale) / 2);
             
             // 경사 치수
             const midX = offsetX + (width * scale) / 2;
             const midY = offsetY - (height * scale) / 2;
-            ctx.fillText(`${(slopeLength / 100).toFixed(2)}m`, midX - 40, midY - 10);
+            ctx.fillText(`${slopeLength.toFixed(0)}mm`, midX - 40, midY - 10);
 
             // 디딤판 치수
             if (steps > 0) {
-                ctx.fillText(`${treadDepth}cm`, 
-                    offsetX + (treadDepth * scale) / 2 - 15, 
+                ctx.fillText(`${treadDepth.toFixed(0)}mm`, 
+                    offsetX + (treadDepth * scale) / 2 - 20, 
                     offsetY - 10);
             }
 
             // 챌판 치수
             if (steps > 0) {
-                ctx.fillText(`${riserHeight.toFixed(0)}cm`, 
+                ctx.fillText(`${riserHeight.toFixed(0)}mm`, 
                     offsetX - 35, 
                     offsetY - (riserHeight * scale) / 2);
             }
