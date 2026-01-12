@@ -1,5 +1,5 @@
 ### # 계단 계산기
 ~~~
-https://github.com/LawnCOM93/SlickX/tree/main/my/stair_calc.html
+https://lawncom93.github.io/SlickX/my/stair_calc.html
 ~~~
 
